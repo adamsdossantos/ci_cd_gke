@@ -2,20 +2,15 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (minimal for pre-built wheels)
 RUN apt-get update && apt-get install -y \
-    build-essential \
     gcc \
-    g++ \
-    python3-dev \
-    libatlas-base-dev \
-    gfortran \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install build tools
-RUN pip install --upgrade pip setuptools wheel
+# Upgrade pip to latest version
+RUN pip install --upgrade pip==24.0
 
-# Copy requirements and install all packages
+# Copy requirements and install packages using pre-built wheels when available
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
