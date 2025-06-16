@@ -31,6 +31,8 @@ RUN pip install --no-cache-dir numpy==1.21.6 cython==0.29.36
 # Install scipy separately (often needed for scikit-surprise)
 RUN pip install --no-cache-dir scipy==1.7.3
 
+RUN pip install --no-binary :all: scikit-surprise==1.1.4
+
 # Copy requirements and install remaining packages
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
