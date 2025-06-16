@@ -1,26 +1,40 @@
-FROM python:3.9-slim
+FROM python:3.8-slim
 
 WORKDIR /app
 
-# Install minimal system dependencies
+# Install comprehensive build dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
     gcc \
+    g++ \
+    gfortran \
+    python3-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
-RUN pip install --upgrade pip
+# Install specific pip version known to work
+RUN pip install --upgrade pip==23.3.2
 
-# Install packages step by step to avoid compilation issues
-RUN pip install --only-binary=all numpy==1.24.3
-RUN pip install --only-binary=all scipy==1.10.1
-RUN pip install --only-binary=all scikit-learn==1.1.3
+# Install build dependencies first
+RUN pip install setuptools==68.2.2 wheel==0.41.2 cython==0.29.32
 
-# Try to install scikit-surprise with pre-built wheel, fallback to source if needed
-RUN pip install scikit-surprise==1.1.1 || pip install --no-binary scikit-surprise scikit-surprise==1.1.1
+# Install numpy first (required for scikit-surprise compilation)
+RUN pip install numpy==1.21.0
 
-# Copy requirements and install remaining packages
-COPY requirements.txt .
-RUN pip install --no-cache-dir streamlit==1.28.1 pandas==1.5.3 joblib==1.3.2 pymongo==4.8.0
+# Set environment variables for compilation
+ENV CFLAGS="-Wno-error -Wno-misleading-indentation"
+ENV CPPFLAGS="-I/usr/local/lib/python3.8/site-packages/numpy/core/include"
+
+# Install scipy
+RUN pip install scipy==1.7.0
+
+# Install scikit-surprise with verbose output for debugging
+RUN pip install --verbose --no-cache-dir scikit-surprise==1.1.1
+
+# Install remaining packages
+RUN pip install streamlit==1.28.1 pandas==1.5.3 scikit-learn==1.1.3 joblib==1.3.2 pymongo==4.8.0
 
 # Copy the rest of the application
 COPY . /app
